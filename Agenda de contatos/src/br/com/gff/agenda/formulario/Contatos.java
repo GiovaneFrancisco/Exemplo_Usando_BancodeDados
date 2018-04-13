@@ -1,24 +1,24 @@
 package br.com.gff.agenda.formulario;
 
-import java.awt.BorderLayout;
 import java.awt.EventQueue;
-
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.border.EmptyBorder;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JTextField;
-import javax.swing.JButton;
-import javax.swing.ImageIcon;
 import java.awt.SystemColor;
 import java.awt.Toolkit;
-import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import javax.swing.UIManager;
+import javax.swing.border.EmptyBorder;
 
-import java.sql.*;
 import br.com.gff.agenda.dal.ModuloDeConexao;
-import javax.swing.JSeparator;
 
 public class Contatos extends JFrame {
 
@@ -35,7 +35,7 @@ public class Contatos extends JFrame {
 			pst.setString(2, txtNome.getText());
 			pst.setString(3, txtTelefone.getText());
 			pst.setString(4, txtEmail.getText());
-			int adc = pst.executeUpdate();
+			int adc = pst.executeUpdate(); //Inserir ou alterar uma linha na tabela
 			if(adc>0) {
 				JOptionPane.showMessageDialog(null, "Contato adicionado com sucesso", "Adicionado", JOptionPane.INFORMATION_MESSAGE);
 				limpar();
@@ -63,13 +63,44 @@ public class Contatos extends JFrame {
 			System.out.println(e);
 		}
 	}
-
+	
 	private void update() {
-
+		String alterar = "update tb_contatos set nome=?,fone=?, email=? where id=?";
+		try {
+			pst = conexao.prepareStatement(alterar);
+			pst.setString(1, txtNome.getText());
+			pst.setString(2, txtTelefone.getText());
+			pst.setString(3, txtEmail.getText());
+			pst.setString(4, txtId.getText());
+			int adc = pst.executeUpdate(); //Inserir ou alterar uma linha na tabela
+			if(adc>0) {
+				JOptionPane.showMessageDialog(null, "Contato alterado com sucesso", "Alterado", JOptionPane.INFORMATION_MESSAGE);
+				limpar();
+			}
+		} catch (Exception e) {
+			System.out.println(e);
+		}
 	}
 
 	private void delete() {
-
+		UIManager.put("OptionPane.noButtonText", "Nem fodendo");
+		int confirma = JOptionPane.showConfirmDialog(null, "Deseja deletar o contato?", "ATENÇÃO", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+		if(confirma==0) {
+			String apagar = "delete from tb_contatos where id=?";
+			try {
+				pst = conexao.prepareStatement(apagar);
+				pst.setString(1, txtId.getText());
+				int removido = pst.executeUpdate();
+				if(removido==1) {
+					JOptionPane.showMessageDialog(null, "Contato Removido com sucesso");
+				}
+				limpar();
+			} catch (Exception e) {
+				// TODO: handle exception
+			}
+		}else {
+			
+		}
 	}
 	
 	private void limpar() {
@@ -185,6 +216,7 @@ public class Contatos extends JFrame {
 		btnUpdate = new JButton("");
 		btnUpdate.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
+				update();
 			}
 		});
 
@@ -211,6 +243,8 @@ public class Contatos extends JFrame {
 		btnDelete = new JButton("");
 		btnDelete.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				delete();
+				
 			}
 		});
 		btnDelete.setToolTipText("Apagar um contato");
@@ -235,5 +269,6 @@ public class Contatos extends JFrame {
 		} else { // Se o banco não estiver ligado e conectado, devolve false
 			lblStatus.setIcon(new ImageIcon(Contatos.class.getResource("/br/com/gff/icons/BancoDesconectado.png")));
 		}
+		setLocationRelativeTo(null);
 	}
 }
